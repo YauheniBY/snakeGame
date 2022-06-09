@@ -1,322 +1,420 @@
-const fildsNet = {
-    width: 15,
-    height: 15
-};
-const elementSize = 30;
+const GAME_STATUS_STARTED = 'started';
+const GAME_STATUS_PAUSED = 'paused';
+const GAME_STATUS_STOPED = 'stoped';
 
-const fild = document.getElementById('fild');
-const $score = document.getElementById('score');
+const SNAKE_DIRECTION_UP = 'up';
+const SNAKE_DIRECTION_DOWN = 'down';
+const SNAKE_DIRECTION_LEFT = 'left';
+const SNAKE_DIRECTION_RIGHT = 'right';
 
-fild.style.width = `${fildsNet.width * elementSize}px`;
-fild.style.height = `${fildsNet.height * elementSize}px`;
+const config = {
 
-// заполняем поле элементами
+    size: 30,
 
-let amountElems = 0;
+    snakeLenghtOnStart: 3,
 
-while (amountElems < (fildsNet.width * fildsNet.height)) {
-
-    let newElem = renderNewElem ();
-    fild.appendChild(newElem);
-    amountElems++;    
-}
-
-// собираем все элементы поля
-
-let allElems = document.querySelectorAll('div.game__item');
-
-for ( let i = 1; i <= allElems.length; i++) {
-
-    let xPosition = (i % fildsNet.width) ? (i % fildsNet.width) : fildsNet.width;
-
-    allElems[ i - 1 ].dataset.xPosition = `${ xPosition - 1 }`;
-    allElems[ i - 1 ].dataset.yPosition = `${ (i - xPosition) / fildsNet.width }`;
-
-}
-
-// устанавливаем стартовую позицию
-
-let currentPosition = randomPosition(fildsNet.width, fildsNet.height);
-
-let bodySnake = [];
-
-let score = 0;
-
-
-// добавляем в тело нашей змейки
-
-bodySnake.push(currentPosition);
-
-// отрисовываем
-
-drowSnake(bodySnake);
-
-// рисуем еду
-
-let food = appearFood (bodySnake);
-
-// задаём управление
-
-let movingDirection = '';
-
-document.addEventListener('keydown', (e) => {
-    if(e.keyCode == '38' && movingDirection != 'down') {
-        movingDirection = 'top';
-    } else  if(e.keyCode == '40' && movingDirection != 'top') {
-        movingDirection = 'down';
-    } else  if(e.keyCode == '39' && movingDirection != 'left') {
-        movingDirection = 'right';
-    } else  if(e.keyCode == '37' && movingDirection != 'right') {
-        movingDirection = 'left';
-    };
-});
-
-// задаём рандомное направление для старта
-
-movingDirection = startMoving (bodySnake);
-
-// запускаем движение
-
-startGame ();
-
-
-function startGame () {
-
-    let gamePlay = setInterval( moveSnake, 200);
-
-
-
-
-//движение змейки 
-
-    function moveSnake() {
-        let restart = false;
-
-        let nextPosition = createNextPosition ();
-
-        memorizeBodySnake (nextPosition);
-
-        makeSnakesBody ();
-
-        if (score > 2){
-            for ( let i = 0; i < bodySnake.length - 1; i++){
-
-                if (bodySnake[i].x === bodySnake[score].x && bodySnake[i].y === bodySnake[score].y) {
-                    clearInterval(gamePlay);
-                    restart = true;
-                }
-            }
-           
-        } 
-
-        if( !restart ) {
-            drowSnake(bodySnake);
-        } else {
-
-            if(confirm ('хотите сыграть еще раз?')) {
-                currentPosition = randomPosition(fildsNet.width, fildsNet.height);
-                bodySnake = [];
-                score = 0;
-                $score.innerText = `Score: ${score}`;
-                bodySnake.push(currentPosition); 
-                food = appearFood (bodySnake);
-                drowSnake(bodySnake);
-                startGame ();
-            } else alert('Game over');
-        }    
-        
-    }
-}
-
-
-
-
-
-
-//  создаём новую позицию
- function createNextPosition () {
-
-    let nextPosition = {x: bodySnake[bodySnake.length - 1].x, y: bodySnake[bodySnake.length - 1].y };
-
-    switch (movingDirection) {
-        case 'top':
-
-            if(nextPosition.y > 0){
-                nextPosition.y = nextPosition.y - 1;
-            } else {
-                nextPosition.y = fildsNet.height - 1; 
-            };
-            break;
-        case 'down':
-            if(nextPosition.y < fildsNet.height - 1) {
-                nextPosition.y = nextPosition.y + 1;
-            } else {
-                nextPosition.y = 0;
-            }
-            
-            break;
-        case 'left':
-            if(nextPosition.x > 0) {
-                nextPosition.x = nextPosition.x - 1;
-            } else {
-                nextPosition.x = fildsNet.width - 1;
-            }
-            
-            break;
-        case 'right':
-            if(nextPosition.x < fildsNet.width - 1) {
-                nextPosition.x = nextPosition.x + 1;
-            } else {
-                nextPosition.x = 0;
-            }
-            
-            break;
-        default:
-            console.log('Ошибка создания новой позиции');
-    }
-    return nextPosition;
- }
-
-// чистим память и стили активного элемента
-
-function clearAll () {
-
-    for (let elem of allElems) {
-        elem.classList.remove('game__item_active'); 
+    fildsNet: {
+        width: 15,
+        height: 15
     }
     
-    while (bodySnake.length > 0) {
-        bodySnake.pop();
-    }
-
-    return true;
-}
-
-
-// формируем тело змейки
-
-function makeSnakesBody () {
-    while (score < bodySnake.length - 1) {
-        bodySnake.shift();
-    }
-}
-
-// генерим коотдинаты стартовой точки
-
-function randomPosition (lengthX, lengthY) { 
-    return {
-        x: Math.floor(Math.random() * lengthX), 
-        y: Math.floor(Math.random() * lengthY)
-    };    
-}
-
-
-
-// функция рандомного направлениястарта движения
-
-function startMoving (bodySnake) {
-
-    let direction = ['top', 'left', 'down', 'right'];
-
-    return direction[(Math.floor( Math.random() * direction.length ))];
-}
-
-
-// 
-
-
-function  drowSnake ( bodySnake) {
-
-
-    for (let elem of allElems) {
-        elem.classList.remove('game__item_active');
-        elem.classList.remove('game__item_active-head');
-
-
-        if ( ( +(elem.dataset.xPosition )) === bodySnake[score].x &&  (+(elem.dataset.yPosition )) === bodySnake[score].y ) {
-
-            elem.classList.add('game__item_active-head');
-            
-            if (elem.classList.contains('game__item_food')) {
-                elem.classList.remove('game__item_food');
-                food = appearFood (bodySnake);
-            }
-
-        } else{
-
-            for( let el in bodySnake) {
-                if(bodySnake[el].x === ( +(elem.dataset.xPosition )) && bodySnake[el].y === ( +(elem.dataset.yPosition ))){
-                    elem.classList.add('game__item_active');
-                } 
-            }             
-        }
-    }
-}
-
-// создаём еду для змеи 
-function appearFood (bodySnake){
-
-   
-    let finish = false;
-    let food = {};
-
-    do {
-
-        food = randomPosition(fildsNet.width, fildsNet.height);
-
-        for (let elem of bodySnake) {
-
-            if(bodySnake.includes(food)) {
-                finish = false;
-            } else {
-                finish = true;
-            }
-        }
-
-    } while (!finish);
-
-
-    for( let el of allElems) {
-
-        el.classList.remove('game__item_food');
-
-        if  ( (+(el.dataset.xPosition )) === food.x &&  (+(el.dataset.yPosition )) === food.y ) {
-
-            el.classList.add('game__item_food');
-
-        }
-    }
- return food;    
-}
-
-// запоминаем ходы в массив bodySnake
-
-function memorizeBodySnake (nextPosition) {
-
-    bodySnake.push(nextPosition);
-
-    if (bodySnake[bodySnake.length - 1].x === food.x && bodySnake[bodySnake.length - 1].y === food.y ){
-        score++;
-        $score.innerText = `Score: ${score}`;
-    }
 
 };
 
-// функция создаёт flex-элементы с нужными размерами
+const score = {
+    value: 0,
 
-function renderNewElem () {
+    getElement () {
+        return document.getElementById('score');
+    },
+    setValue () {
+        this.value = snake.body.length - config.snakeLenghtOnStart;
+    },
+    setScoreStatus(status) {
+        const element = score.getElement();
+        element.classList.remove(GAME_STATUS_PAUSED, GAME_STATUS_STARTED, GAME_STATUS_STOPED);
+        element.classList.add(status);
+    },
+    render() {
+        this.getElement().innerText = `Score: ${this.value}`;
+    }
+}
 
-    let newElem = document.createElement('div');
+const game = {
 
-    newElem.classList.add('game__item');
-    fild.appendChild(newElem);
+    timer: {
+        gamesTimer: null,
+        interval: 300
+    },
 
-    // const rightWidth = 100 / Number(fildsNet.width);
-          newElem.style.width = `${elementSize - 10}px`;
+    getElement () {
 
-    // const rightHeight = 100 / Number(fildsNet.height);
-          newElem.style.height = `${elementSize - 10}px`;
+        return document.getElementById('game');
+    },
 
-    return newElem;
+    start () {
+
+
+        if(game.getGameStatus() != GAME_STATUS_STARTED ){
+
+            
+
+            if(game.getGameStatus() != GAME_STATUS_PAUSED ){
+                
+            board.render();
+            snake.generateDirection();
+            snake.generateBody();
+            snake.render();
+            food.generateItem ();
+            food.render();
+            score.render();
+
+            } 
+            
+            game.setGameStatus(GAME_STATUS_STARTED);
+            score.setScoreStatus(GAME_STATUS_STARTED);
+            
+
+
+            game.timer.gamesTimer = setInterval( ()=>{   
+
+            
+
+                game.renderNextPicture ();
+                
+            if( game.getGameStatus() != GAME_STATUS_STOPED){
+                score.render();
+            }
+
+            } , game.timer.interval);   
+
+        }
+             
+        
+    },
+
+    pause () {
+
+        if(game.getGameStatus() != GAME_STATUS_STOPED ){
+            game.setGameStatus(GAME_STATUS_PAUSED);
+            clearInterval(game.timer.gamesTimer);
+            
+            score.setScoreStatus(GAME_STATUS_PAUSED);
+        }
+        
+    },
+
+    stop () {  
+        game.setGameStatus(GAME_STATUS_STOPED);
+        clearInterval(game.timer.gamesTimer);
+        food.clearItems();
+        score.value = 0;
+        score.setScoreStatus(GAME_STATUS_STOPED);
+    },
+
+    move (event)  {
+
+        let direction = '';
+            if(event.keyCode == '38' && snake.direction != SNAKE_DIRECTION_DOWN) {
+                direction = SNAKE_DIRECTION_UP;
+            } else  if(event.keyCode == '40' && snake.direction != SNAKE_DIRECTION_UP) {
+                direction = 'down';
+            } else  if(event.keyCode == '39' && snake.direction != SNAKE_DIRECTION_LEFT) {
+                direction = SNAKE_DIRECTION_RIGHT;
+            } else  if(event.keyCode == '37' && snake.direction != SNAKE_DIRECTION_RIGHT) {
+                direction = SNAKE_DIRECTION_LEFT;
+            } else direction = snake.direction;
+
+            const potentialPosition = snake.getNextPosition(direction);
+            if(!(potentialPosition.top === snake.body[snake.body.length - 2].top &&
+                potentialPosition.left === snake.body[snake.body.length - 2].left)) {                   
+                    snake.setDirection( direction );
+
+            }
+
+            
+
+        
+
+    },
+
+    renderNextPicture (){
+
+        const nextPosition = snake.getNextPosition();
+
+            const foundFood = food.foundPosition(nextPosition);
+
+            if (foundFood !== -1 ) {
+                snake.setPosition ( nextPosition, false);
+                food.removeItem ( foundFood );
+                food.generateItem ();
+                food.render();
+
+            } else {
+                snake.setPosition ( nextPosition );
+            }
+
+            snake.render(); 
+
+    },
+
+    setGameStatus(status) {
+        const element = game.getElement();
+        element.classList.remove(GAME_STATUS_PAUSED, GAME_STATUS_STARTED, GAME_STATUS_STOPED);
+        element.classList.add(status);
+    },
+
+    getGameStatus () {
+
+        const arrOfStatus = [GAME_STATUS_PAUSED, GAME_STATUS_STARTED, GAME_STATUS_STOPED];
+        for(let status of arrOfStatus) {
+            if (game.getElement().classList.contains(status)) {
+                return status;
+            }
+        };
+
+        return false;
+    }
 
 }
+
+
+const board = {
+
+    getElement () {
+        return document.getElementById('board');
+    },
+
+    render () {
+        const board = this.getElement();
+
+        board.style.width = `${config.fildsNet.width * config.size}px`;
+        board.style.height = `${config.fildsNet.height * config.size}px`;
+
+     // заполняем поле элементами
+
+     if(cells.getElements().length === 0){
+
+        let amountElems = 0;
+
+        while (amountElems < (config.fildsNet.width * config.fildsNet.height)) {
+
+            let newElem = document.createElement('div');
+            newElem.classList.add('cell');        
+            newElem.style.width = `${config.size - 10}px`;
+            newElem.style.height = `${config.size - 10}px`;
+            board.appendChild(newElem);
+            amountElems++;    
+        }
+        
+        cells.addCooordinates();
+
+     }
+
+        
+
+    }
+
+}
+
+
+const cells = {
+
+    getElements () {
+        return document.querySelectorAll('.cell');
+    },
+    addCooordinates () {
+
+        // собираем все элементы поля
+
+        let allElems = this. getElements();
+
+        for ( let i = 1; i <= allElems.length; i++) {
+
+            let left = (i % config.fildsNet.width) ? (i % config.fildsNet.width) : config.fildsNet.width;
+
+            allElems[ i - 1 ].dataset.left = `${ left - 1 }`;
+            allElems[ i - 1 ].dataset.top = `${ (i - left) / config.fildsNet.width }`;
+
+        }
+
+    },
+
+    renderItems (coordinates, classForItem) {
+
+        // собираем все элементы поля
+
+        let allElems = this. getElements();
+
+        // удаляем нужные классы
+
+        allElems.forEach( (elem) => {
+            elem.classList.remove(classForItem);            
+        });
+
+        // добавляем нужные классы в соответствующие элементу координаты
+
+        for( let coordinate of coordinates) {
+                const cell = document.querySelector(`.cell[data-top="${coordinate.top}"][data-left="${coordinate.left}"]`);
+            cell.classList.add(classForItem);
+        }
+
+    }
+};
+
+const snake = {
+
+    direction: SNAKE_DIRECTION_RIGHT,
+
+    body: [],
+
+    generateDirection () {
+        const directions = [SNAKE_DIRECTION_RIGHT, SNAKE_DIRECTION_LEFT, SNAKE_DIRECTION_UP, SNAKE_DIRECTION_DOWN];
+        snake.direction = directions[ getRandomNumber (0, directions.length - 1) ];
+    },
+    generateBody () {
+
+        snake.body = [{top: getRandomNumber (0, config.fildsNet.height - 1), left: getRandomNumber (0, config.fildsNet.width - 1)}];    
+
+        while( snake.body.length < config.snakeLenghtOnStart){
+
+            snake.setPosition(snake.getNextPosition(), false);
+        }
+        
+        
+    },
+
+    foundPosition ( inspectingElement ) {
+        const compareFunction = function (item) {
+            return item.top === inspectingElement.top && item.left === inspectingElement.left;
+        };
+        return snake.body.findIndex(compareFunction);
+    },
+
+    setDirection (direction) { 
+
+        this.direction = direction;
+    },
+
+    getNextPosition (direction = this.direction) {
+
+        let nextPosition = { ...this.body[ this.body.length - 1 ] };
+
+        switch (direction) {
+            case SNAKE_DIRECTION_UP:
+
+                if(nextPosition.top > 0){
+                    nextPosition.top -= 1;
+                } else {
+                    nextPosition.top = config.fildsNet.height - 1; 
+                };
+                break;
+            case SNAKE_DIRECTION_DOWN:
+                if(nextPosition.top < config.fildsNet.height - 1) {
+                    nextPosition.top += + 1;
+                } else {
+                    nextPosition.top = 0;
+                }
+                
+                break;
+            case SNAKE_DIRECTION_LEFT:
+                if(nextPosition.left > 0) {
+                    nextPosition.left -= 1;
+                } else {
+                    nextPosition.left = config.fildsNet.width - 1;
+                }
+                
+                break;
+            case SNAKE_DIRECTION_RIGHT:
+                if(nextPosition.left < config.fildsNet.width - 1) {
+                    nextPosition.left += 1;
+                } else {
+                    nextPosition.left = 0;
+                }
+                
+                break;
+            default:
+                console.log('Ошибка создания новой позиции');
+        }
+        return nextPosition;
+
+    },
+
+    setPosition (position, shift = true) {
+
+        if(shift) {
+            this.body.shift();            
+        }
+
+        if(snake.foundPosition(position) != -1) {
+            game.stop();
+        }
+
+        this.body.push(position);
+
+    },
+    render () {
+        cells.renderItems( snake.body, 'snake' );
+        const snakeHead = [snake.body[snake.body.length - 1]]
+        cells.renderItems( snakeHead, 'snake_head' );
+    }
+};
+
+const food = {
+    items: [],
+
+    foundPosition (snakePosition) {
+        const compareFunction = function (item) {
+            return item.top === snakePosition.top && item.left === snakePosition.left;
+        };
+        return food.items.findIndex(compareFunction);
+    },
+
+    removeItem (foundFood) {
+        this.items.shift();
+        score.setValue();       
+    },
+
+    clearItems() {
+        this.items = [];
+    },
+
+    generateItem () {
+
+        let newItem = {};
+
+        do{
+            newItem = {
+                top: getRandomNumber(0, config.fildsNet.height - 1),
+                left: getRandomNumber(0, config.fildsNet.width - 1)
+            }   
+
+        } while(snake.foundPosition(newItem) != -1);             
+
+        this.items.push(newItem);
+    },
+
+    render() {
+        cells.renderItems( food.items, 'food')
+    }
+};
+
+
+function init () {
+    const startButton = document.getElementById('start');
+    const pauseButton = document.getElementById('pause');
+    const stopButton = document.getElementById('stop');
+
+    startButton.addEventListener('click', game.start);
+    pauseButton.addEventListener('click', game.pause);
+    stopButton.addEventListener('click', game.stop);
+
+    window.addEventListener('keydown', game.move)
+}
+
+function getRandomNumber (min, max) {
+    return (Math.ceil(Math.random()*(max - min)) + min );
+}
+
+
+window.addEventListener('load', init);

@@ -2,13 +2,14 @@ body {
     background-color: rgb(54, 51, 54);
     text-align: center;
     color: #fff;
+    font-family: 'Train One', cursive;
 }
-.game {
+.game{
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: rgb(21, 21, 23);
-    width: 70%;
+    width: 100%;
     max-width: 500px;
     height: 500px;
     margin: 0 auto;
@@ -18,18 +19,63 @@ body {
     box-shadow: 0 10px 30px rgb(38, 38, 38);
 }
 
-.game__item {
+.game__board {
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    width: 100%;
+    height: 100%;
+    flex-flow: row wrap;
+    border: 1px solid transparent; 
+}
+
+.paused {
+    box-shadow: 0 10px 30px rgb(157, 0, 49);
+    color: rgb(157, 0, 49);
+}
+
+
+.started {
+    box-shadow: 0 10px 30px rgb(0, 157, 139);
+    color: rgb(0, 157, 139);
+}
+
+.stoped {
+    box-shadow: 0 10px 30px rgb(84, 157, 0);
+    color: rgb(84, 157, 0);
+}
+.score  {
+    box-shadow: none;
+}
+
+.cell {
     box-sizing: border-box;
     border: 1px solid rgb(85, 85, 87);
     background-color: rgb(85, 85, 87);
     border-radius: 50%;
     margin: 5px;
-    transform: scale(0.2);  
+    transform: scale(0.2);
+
 
 }
 
+.paused .game__board {
+    border: 3px dotted rgb(157, 0, 49);
+}
 
-.game__item_active {
+.started .game__board {
+    border: 3px dotted rgb(0, 157, 139);
+}
+
+
+
+.stoped .game__board {
+    border: 3px dotted rgb(84, 157, 0);
+}
+
+
+
+.snake {
     background-color: rgb(157, 0, 49);
     border-radius: 0%;
     transform: scale(1.6);        
@@ -37,7 +83,7 @@ body {
     
 }
 
-.game__item_active-head {
+.snake_head {
     background-color: rgb(249, 4, 86);    
     border-radius: 0%;
     transform: scale(1.6);    
@@ -45,7 +91,48 @@ body {
     
 }
 
-.game__item_food {
+.food {
     background-color: rgb(243, 1, 85);    
     transform: scale(1.2); 
+}
+
+.btns {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.start, .stop, .pause {
+    margin: 40px;
+    min-width: 100px;
+    padding: 15px;
+    font-size: 20px;
+    text-align: center;
+    text-transform: uppercase;
+    background: transparent;
+    opacity: 0.8;
+    transition: 0.3s;
+
+}
+
+.pause {   
+    border: 3px solid rgb(241, 51, 111);
+    color: rgb(241, 51, 111);
+}
+
+.start {   
+    border: 3px solid rgb(0, 157, 139);
+    color: rgb(0, 157, 139);
+}
+
+.stop {   
+    border: 3px solid rgb(84, 157, 0);
+    color: rgb(84, 157, 0);
+}
+
+.start:hover, .stop:hover, .pause:hover {
+    opacity: 1;
+    cursor: pointer;
 }

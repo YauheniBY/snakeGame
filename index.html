@@ -6,10 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Train+One&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1 id="score">Score: 0</h1>
-    <div class="game" id="fild"></div>
+    <section>
+        <h1 id="score" class="score">Score: 0</h1>
+        <div id="game" class="game">
+            <div class="game__board" id="board"></div>
+        </div>
+        <div class="btns">
+            <button type='button' class="start" id="start">Start</button>
+            <button type='button' class="pause" id="pause">pause</button>
+            <button type='button' class="stop" id="stop">stop</button>
+        </div>
+        
+    </section>
+    
 
     <script src="script.js"></script>
     
